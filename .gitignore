@@ -33,6 +33,9 @@ yarn-error.log*
 # env files (can opt-in for committing if needed)
 .env*
 
+# 학교별 티켓 코드 — 절대 커밋하지 말 것 (scripts/codes.example.json 이 형식 예시)
+scripts/codes.local.json
+
 # vercel
 .vercel
 
