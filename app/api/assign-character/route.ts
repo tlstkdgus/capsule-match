@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabaseAdmin';
 import { hashOpenCode } from '@/lib/hashCode';
+import { blockedResponse, recordCodeFailure } from '@/lib/codeGuard';
 import { createHash } from 'crypto';
 
 export async function POST(req: NextRequest) {
@@ -10,6 +11,9 @@ export async function POST(req: NextRequest) {
     if (!universityId || !code) {
       return NextResponse.json({ success: false, error: '요청 정보가 올바르지 않습니다.' }, { status: 400 });
     }
+
+    const blocked = blockedResponse(req, universityId);
+    if (blocked) return blocked;
 
     // 대학 정보 재확인 (이중 검증)
     const { data: university, error: uniError } = await supabaseAdmin
@@ -35,6 +39,7 @@ export async function POST(req: NextRequest) {
     // 코드 검증
     const inputHash = hashOpenCode(code);
     if (inputHash !== university.open_code_hash) {
+      recordCodeFailure(req, universityId);
       return NextResponse.json({ success: false, error: '코드가 일치하지 않습니다.' }, { status: 401 });
     }
 
